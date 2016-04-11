@@ -103,7 +103,7 @@ var conf = function(file_path){
 			else if(/SET|UNSET|RESET/.test(line)){//the onlye 3 options that don't use colons <:>
 
 				var tmp = line.split(' ');
-				console.log(tmp);
+				//console.log(tmp);
 				key = tmp[0].clean();
 				config[key] = [];
 				
@@ -126,8 +126,8 @@ var conf = function(file_path){
 	}.bind(this));
 	
 	rl.on('close', function(){
-			console.log('dirvish config');
-			console.log(config);
+			//console.log('dirvish config');
+			//console.log(config);
 			
 			deferred.resolve(config);
 	});
