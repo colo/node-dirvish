@@ -135,5 +135,77 @@ var conf = function(file_path){
 	return deferred.promise;
 };
 
+var vaults = function(file_path){
+	var deferred = Q.defer();
+	
+	var dir = path.join(path.dirname(file_path)+'/../../');
+	
+	conf(file_path)
+	.then(function(config){
+
+		//console.log('this.config');
+		//console.log(config.bank);
+		var banks = config.bank;
+		var vaults = {};
+		
+		banks.each(function(bank, index){
+				console.log('bank'+dir);
+				console.log(bank);
+				
+				var bank_path = path.join(dir, bank);
+				
+				try{
+					fs.accessSync(bank_path, fs.R_OK);
+					
+					fs.readdirSync(bank_path).forEach(function(vault) {
+
+						var full_path = path.join(bank_path, vault);
+						
+						//console.log('full vault path: '+full_path);
+						
+						if(! (vault.charAt(0) == '.')){//ommit 'hiden' files
+							
+							if(fs.statSync(full_path).isDirectory() == true){//vaults are dirs inside a bank
+								console.log('possible vault: '+full_path);
+								console.log('possible vault name: '+vault);
+								var conf_file = path.join(full_path, '/dirvish/default.conf');
+								
+								try{
+									fs.accessSync(conf_file, fs.R_OK);
+									
+									conf(conf_file)
+									.then(function(config){
+										vaults[vault] = config;
+									})
+									.done();
+									
+								}
+								catch(e){
+									console.log('accesing dirvish/default.conf');
+									console.log(e);
+								}
+								
+							}
+						
+						}
+						
+					});
+				}
+				catch(e){
+					console.log(e);
+				}
+			
+			
+		});
+			
+		deferred.resolve(vaults);
+		
+	}.bind(this))
+	.done();
+	
+	return deferred.promise;
+};
+
 var exports = module.exports = {};
 exports.conf = conf;
+exports.vaults = vaults;
