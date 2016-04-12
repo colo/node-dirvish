@@ -136,21 +136,22 @@ var conf = function(file_path){
 };
 
 var vaults = function(file_path){
-	var deferred = Q.defer();
+	//var deferred = Q.defer();
 	
 	var dir = path.join(path.dirname(file_path)+'/../../');
 	
-	conf(file_path)
+	return conf(file_path)
 	.then(function(config){
 
-		//console.log('this.config');
+		//console.log('this.vaults - this.config');
 		//console.log(config.bank);
+		
 		var banks = config.bank;
 		var vaults = {};
 		
 		banks.each(function(bank, index){
-				console.log('bank'+dir);
-				console.log(bank);
+				//console.log('bank'+dir);
+				//console.log(bank);
 				
 				var bank_path = path.join(dir, bank);
 				
@@ -198,12 +199,21 @@ var vaults = function(file_path){
 			
 		});
 			
-		deferred.resolve(vaults);
+		//deferred.resolve(vaults);
+		return vaults;
 		
-	}.bind(this))
-	.done();
+	}.bind(this));
 	
-	return deferred.promise;
+	
+	
+	
+	
+	
+	//conf(file_path)
+	//.then()
+	//.done();
+	
+	//return deferred.promise;
 };
 
 var exports = module.exports = {};
