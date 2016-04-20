@@ -6,6 +6,12 @@ var Q = require('q'),
 const readline = require('readline'),
 			fs = require('fs');
 
+var save = function(conf, file_path){
+	var output = fs.createWriteStream(file_path+'.devel', {defaultEncoding: 'ascii', mode: 0o644});
+	
+	return null;
+};
+
 var conf = function(file_path){
 	var deferred = Q.defer();
 	var dir = path.dirname(file_path);
@@ -219,3 +225,4 @@ var vaults = function(file_path){
 var exports = module.exports = {};
 exports.conf = conf;
 exports.vaults = vaults;
+exports.save = save;
