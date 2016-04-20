@@ -1,14 +1,95 @@
 'use strict'
 
 var Q = require('q'),
-		path = require('path');
+		path = require('path'),
+		os = require('os')
+		;
 		
 const readline = require('readline'),
 			fs = require('fs');
 
 var save = function(conf, file_path){
+	console.log('output save');
+	console.log(conf);
+	
 	var output = fs.createWriteStream(file_path+'.devel', {defaultEncoding: 'ascii', mode: 0o644});
 	
+	output.on('error', function(err) {
+		throw new Error(err);
+	});
+	
+	Object.each(conf, function(value, key){
+		console.log('output save-key:');
+		console.log(key);
+		console.log(value);
+	
+		var lines = "";
+		
+		if(/SET|UNSET|RESET/.test(key)){//the onlye 3 options that don't use colons <:>
+			lines = key;
+			
+			value.each(function(item){
+					lines += " " + item;
+			});
+			
+			lines += os.EOL;
+		}
+		else if(/config|file-exclude|password-file|client/.test(key)){//include config file
+			lines = key + ":";
+			
+			if(typeof(value) == 'object'){
+				Object.each(value, function(item, value_key){
+					lines += " " + value_key;
+				});
+			}
+			else{
+				lines += " " + value;
+			}
+			
+			lines += os.EOL;
+		}
+		else if(/bank|exclude|expire-rule|rsync-option|Runall/.test(key)){//list types
+			lines = key + ":" + os.EOL;
+			
+			console.log('list types');
+			console.log(typeof(value));
+			console.log(value);
+			
+			if(typeof(value) == 'object'){
+				Object.each(value, function(item, value_key){
+					lines += "\t" + item + os.EOL;
+				});
+			}
+			else{
+				lines += "\t" + value + os.EOL;
+			}
+			
+			lines += os.EOL;
+		}
+		else{//string & boolean types
+			
+			lines = key + ":";
+			
+			if(typeof(value) == 'object'){
+				Object.each(value, function(item, value_key){
+					lines += " " + value_key;
+				});
+			}
+			else{
+				lines += " " + value;
+			}
+			
+			lines += os.EOL;
+			
+		}
+		
+		console.log('output line: '+ lines);
+		
+		output.write(lines);
+	});
+	
+	output.end();
+
 	return null;
 };
 
@@ -100,6 +181,9 @@ var conf = function(file_path){
 					}.bind(this));
 					
 				}
+				/*else if(key == 'expire-rule'){
+					key = null;
+				}*/
 				else{
 					config[key] = tmp[1].clean();
 				}
