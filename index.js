@@ -101,6 +101,54 @@ var is_value_line = function(line){//value lines are ALWAYS indented by tabs or 
 	return result;
 };
 
+var hist = function(file_path){
+	var deferred = Q.defer();
+	
+	const rl = readline.createInterface({
+		input: fs.createReadStream(file_path)
+	});
+	
+	var config = [];
+	var headers = {};
+	var line_number = 0;
+	rl.on('line', function(line) {
+		
+		if(line.indexOf('#') == 0 && line_number == 0){//header line
+			
+			var headers_array = line.slice(1).split("\t");//remove # and split on tabs
+			
+			
+			headers_array.each(function(item){
+				headers[item] = null
+			});
+			console.log('headers');
+			console.log(headers);
+		}
+		else{
+			var values_array = line.split("\t");//split on tabs
+			var values = Object.clone(headers);
+			
+			var column_number = 0;
+			Object.each(values, function(value, key){
+				values[key] = values_array[column_number];
+				column_number++;
+			});
+			
+			config.push(values);
+		}
+		
+		line_number++;
+	});
+	
+	rl.on('close', function(){
+			console.log('dirvish HIST');
+			console.log(config);
+			deferred.resolve(config);
+	});
+	
+	return deferred.promise;
+};
+
 var conf = function(file_path){
 	var deferred = Q.defer();
 	var dir = path.dirname(file_path);
@@ -273,6 +321,7 @@ var vaults = function(file_path){
 								console.log('possible vault name: '+vault);
 								
 								var conf_file = path.join(full_path, '/dirvish/default.conf');
+								var hist_file = path.join(full_path, '/dirvish/default.hist');
 								
 								console.log('possible vault conf file: '+conf_file);
 								
@@ -284,7 +333,19 @@ var vaults = function(file_path){
 										console.log('possible vault config');
 										console.log(config);
 										
-										vaults[vault] = config;
+										vaults[vault] = {};
+										vaults[vault]['path'] = conf_file;
+										vaults[vault]['config'] = config;
+										
+										try{//try to access hist file
+											fs.accessSync(hist_file, fs.R_OK);
+											vaults[vault]['hist'] = hist_file;
+										}
+										catch(e){
+											console.log('accesing dirvish/default.hist');
+											console.log(e);
+										}
+										
 										deferred.resolve(vaults);
 									})
 									.done();
@@ -329,3 +390,4 @@ var exports = module.exports = {};
 exports.conf = conf;
 exports.vaults = vaults;
 exports.save = save;
+exports.hist = hist;
