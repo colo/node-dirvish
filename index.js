@@ -93,6 +93,14 @@ var save = function(conf, file_path){
 	return null;
 };
 
+var is_value_line = function(line){//value lines are ALWAYS indented by tabs or white space
+	var result = false;
+	if(line.indexOf(' ') == 0 || line.indexOf("\t") == 0)
+		result = true;
+		
+	return result;
+};
+
 var conf = function(file_path){
 	var deferred = Q.defer();
 	var dir = path.dirname(file_path);
@@ -106,9 +114,12 @@ var conf = function(file_path){
 	var config = {};
 	
 	rl.on('line', function(line) {
-		line = line.clean();
+		//line = line.clean();
 		//var key = null;
 		
+		if(line == null || line == ''){//reset key
+			key = null;
+		}
 			
 		if(line.indexOf('#') == 0){//comment
 			comment = (comment == null) ? line : comment + "\n"+line;
@@ -120,17 +131,14 @@ var conf = function(file_path){
 			
 		}
 		
-		if(line == null || line == ''){//reset key
-			key = null;
-		}
 		
 		if(line != null && line != ''){//avoid null lines
 			
-			if(line.indexOf(':') == line.length - 1){//if line ends with ':' starts a multiline section
+			if(!is_value_line(line) && line.indexOf(':') == line.length - 1){//if line ends with ':' starts a multiline section
 				key = line.slice(0, line.indexOf(':')).clean();
 				config[key] = [];
 			}
-			else if(line.indexOf(':') > 0){//section : value
+			else if(!is_value_line(line) && line.indexOf(':') > 0){//section : value
 				var tmp = line.split(':');
 				key = tmp[0].clean();
 				
@@ -181,11 +189,13 @@ var conf = function(file_path){
 					}.bind(this));
 					
 				}
-				/*else if(key == 'expire-rule'){
-					key = null;
-				}*/
 				else{
-					config[key] = tmp[1].clean();
+					//console.log('KEY: '+key);
+					//console.log('value: '+tmp[1]);
+					//console.log(config);
+					
+					if(tmp[1].clean() != '')
+						config[key] = tmp[1].clean();
 				}
 				
 				key = null;
@@ -198,15 +208,17 @@ var conf = function(file_path){
 				config[key] = [];
 				
 				for(var i = 1; i < tmp.length; i++){
-					config[key].push(tmp[i].clean());
+					if(tmp[i].clean() != '')
+						config[key].push(tmp[i].clean());
 				}
 				key = null;
 			}
-			else if(key == null){//only know case: 'password-file'
+			else if(key == null){//only know case is the content of a 'password-file'
 				config = line.clean();
 			}
 			else{//value of a multiline section
-				config[key].push(line.clean());
+				if(line.clean() != '')
+					config[key].push(line.clean());
 			}
 			
 			//console.log('Comment from file:', comment);
@@ -226,7 +238,7 @@ var conf = function(file_path){
 };
 
 var vaults = function(file_path){
-	//var deferred = Q.defer();
+	var deferred = Q.defer();
 	
 	var dir = path.join(path.dirname(file_path)+'/../../');
 	
@@ -259,14 +271,21 @@ var vaults = function(file_path){
 							if(fs.statSync(full_path).isDirectory() == true){//vaults are dirs inside a bank
 								console.log('possible vault: '+full_path);
 								console.log('possible vault name: '+vault);
+								
 								var conf_file = path.join(full_path, '/dirvish/default.conf');
+								
+								console.log('possible vault conf file: '+conf_file);
 								
 								try{
 									fs.accessSync(conf_file, fs.R_OK);
 									
 									conf(conf_file)
 									.then(function(config){
+										console.log('possible vault config');
+										console.log(config);
+										
 										vaults[vault] = config;
+										deferred.resolve(vaults);
 									})
 									.done();
 									
@@ -289,8 +308,8 @@ var vaults = function(file_path){
 			
 		});
 			
-		//deferred.resolve(vaults);
-		return vaults;
+		return deferred.promise;
+		//return vaults;
 		
 	}.bind(this));
 	
