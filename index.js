@@ -9,8 +9,8 @@ const readline = require('readline'),
 			fs = require('fs');
 
 var save = function(conf, file_path){
-	console.log('output save');
-	console.log(conf);
+	//console.log('output save');
+	//console.log(conf);
 	
 	var output = fs.createWriteStream(file_path+'.devel', {defaultEncoding: 'ascii', mode: 0o644});
 	
@@ -19,9 +19,9 @@ var save = function(conf, file_path){
 	});
 	
 	Object.each(conf, function(value, key){
-		console.log('output save-key:');
-		console.log(key);
-		console.log(value);
+		//console.log('output save-key:');
+		//console.log(key);
+		//console.log(value);
 	
 		var lines = "";
 		
@@ -51,9 +51,9 @@ var save = function(conf, file_path){
 		else if(/bank|exclude|expire-rule|rsync-option|Runall/.test(key)){//list types
 			lines = key + ":" + os.EOL;
 			
-			console.log('list types');
-			console.log(typeof(value));
-			console.log(value);
+			//console.log('list types');
+			//console.log(typeof(value));
+			//console.log(value);
 			
 			if(typeof(value) == 'object'){
 				Object.each(value, function(item, value_key){
@@ -83,7 +83,7 @@ var save = function(conf, file_path){
 			
 		}
 		
-		console.log('output line: '+ lines);
+		//console.log('output line: '+ lines);
 		
 		output.write(lines);
 	});
@@ -121,8 +121,8 @@ var hist = function(file_path){
 			headers_array.each(function(item){
 				headers[item] = null
 			});
-			console.log('headers');
-			console.log(headers);
+			//console.log('headers');
+			//console.log(headers);
 		}
 		else{
 			var values_array = line.split("\t");//split on tabs
@@ -141,8 +141,8 @@ var hist = function(file_path){
 	});
 	
 	rl.on('close', function(){
-			console.log('dirvish HIST');
-			console.log(config);
+			//console.log('dirvish HIST');
+			//console.log(config);
 			deferred.resolve(config);
 	});
 	
@@ -222,8 +222,8 @@ var conf = function(file_path){
 								config[tmp_key] = {};
 								config[tmp_key][include_file] = cfg;
 								
-								//console.log('config[key]'+key);
-								//console.log(config);
+								////console.log('config[key]'+key);
+								////console.log(config);
 								
 							}.bind(this))
 							.done();
@@ -231,16 +231,16 @@ var conf = function(file_path){
 							throw new Error('Read: '+ file_path);//break the each loop
 						}
 						catch(e){
-							console.log(e);
+							//console.log(e);
 						}
 					
 					}.bind(this));
 					
 				}
 				else{
-					//console.log('KEY: '+key);
-					//console.log('value: '+tmp[1]);
-					//console.log(config);
+					////console.log('KEY: '+key);
+					////console.log('value: '+tmp[1]);
+					////console.log(config);
 					
 					if(tmp[1].clean() != '')
 						config[key] = tmp[1].clean();
@@ -251,7 +251,7 @@ var conf = function(file_path){
 			else if(/SET|UNSET|RESET/.test(line)){//the onlye 3 options that don't use colons <:>
 
 				var tmp = line.split(' ');
-				//console.log(tmp);
+				////console.log(tmp);
 				key = tmp[0].clean();
 				config[key] = [];
 				
@@ -269,15 +269,15 @@ var conf = function(file_path){
 					config[key].push(line.clean());
 			}
 			
-			//console.log('Comment from file:', comment);
-			//console.log('Line from file:', line);
+			////console.log('Comment from file:', comment);
+			////console.log('Line from file:', line);
 			
 		}
 	}.bind(this));
 	
 	rl.on('close', function(){
-			//console.log('dirvish config');
-			//console.log(config);
+			////console.log('dirvish config');
+			////console.log(config);
 			
 			deferred.resolve(config);
 	});
@@ -293,15 +293,15 @@ var vaults = function(file_path){
 	return conf(file_path)
 	.then(function(config){
 
-		//console.log('this.vaults - this.config');
-		//console.log(config.bank);
+		////console.log('this.vaults - this.config');
+		////console.log(config.bank);
 		
 		var banks = config.bank;
 		var vaults = {};
 		
 		banks.each(function(bank, index){
-				//console.log('bank'+dir);
-				//console.log(bank);
+				////console.log('bank'+dir);
+				////console.log(bank);
 				
 				var bank_path = path.join(dir, bank);
 				
@@ -312,26 +312,26 @@ var vaults = function(file_path){
 
 						var full_path = path.join(bank_path, vault);
 						
-						//console.log('full vault path: '+full_path);
+						////console.log('full vault path: '+full_path);
 						
 						if(! (vault.charAt(0) == '.')){//ommit 'hiden' files
 							
 							if(fs.statSync(full_path).isDirectory() == true){//vaults are dirs inside a bank
-								console.log('possible vault: '+full_path);
-								console.log('possible vault name: '+vault);
+								//console.log('possible vault: '+full_path);
+								//console.log('possible vault name: '+vault);
 								
 								var conf_file = path.join(full_path, '/dirvish/default.conf');
 								var hist_file = path.join(full_path, '/dirvish/default.hist');
 								
-								console.log('possible vault conf file: '+conf_file);
+								//console.log('possible vault conf file: '+conf_file);
 								
 								try{
 									fs.accessSync(conf_file, fs.R_OK);
 									
 									conf(conf_file)
 									.then(function(config){
-										console.log('possible vault config');
-										console.log(config);
+										//console.log('possible vault config');
+										//console.log(config);
 										
 										vaults[vault] = {};
 										vaults[vault]['path'] = conf_file;
@@ -342,8 +342,8 @@ var vaults = function(file_path){
 											vaults[vault]['hist'] = hist_file;
 										}
 										catch(e){
-											console.log('accesing dirvish/default.hist');
-											console.log(e);
+											//console.log('accesing dirvish/default.hist');
+											//console.log(e);
 										}
 										
 										deferred.resolve(vaults);
@@ -352,8 +352,8 @@ var vaults = function(file_path){
 									
 								}
 								catch(e){
-									console.log('accesing dirvish/default.conf');
-									console.log(e);
+									//console.log('accesing dirvish/default.conf');
+									//console.log(e);
 								}
 								
 							}
@@ -363,7 +363,7 @@ var vaults = function(file_path){
 					});
 				}
 				catch(e){
-					console.log(e);
+					//console.log(e);
 				}
 			
 			
