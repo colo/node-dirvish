@@ -1,7 +1,7 @@
 {
-  "name": "login",
+  "name": "node-dirvish",
   "version": "0.0.1",
-  "description": "Login App",
+  "description": "dirvish config",
   "author": {
     "name": "Luciano Bueno",
     "email": "glamero@gmail.com"
@@ -22,7 +22,7 @@
     }
   ],
   "keywords": [
-    "login",
-    "authentication"
+    "dirvish",
+    "config"
   ]
 }
